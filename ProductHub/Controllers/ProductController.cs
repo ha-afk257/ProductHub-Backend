@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using ProductHub.Models;
+using ProductHub.Repositories;
 
 namespace ProductHubAPI.Controllers
 {
@@ -8,36 +8,66 @@ namespace ProductHubAPI.Controllers
     [ApiController]
     public class ProductController : ControllerBase
     {
-        // GET: api/<ProductController>
+        private readonly ProductRepository _repository;
+
+        public ProductController()
+        {
+            _repository = new ProductRepository();
+        }
+
+        // GET: api/product
         [HttpGet]
-        public IEnumerable<string> Get()
+        public ActionResult<IEnumerable<Product>> Get()
         {
-            return ["value1", "value2"];
+            var products = _repository.GetAll();
+            return Ok(products);
         }
 
-        // GET api/<ProductController>/5
+        // GET api/product/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public ActionResult<Product> Get(long id)
         {
-            return "value";
+            var product = _repository.GetById(id);
+            if (product == null)
+                return NotFound();
+
+            return Ok(product);
         }
 
-        // POST api/<ProductController>
+        // POST api/product
         [HttpPost]
-        public void Post([FromBody] string value)
+        public ActionResult<Product> Post([FromBody] Product product)
         {
+            if (product == null)
+                return BadRequest();
+
+            var created = _repository.Add(product);
+            return CreatedAtAction(nameof(Get), new { id = created.Id }, created);
         }
 
-        // PUT api/<ProductController>/5
+        // PUT api/product/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public IActionResult Put(long id, [FromBody] Product product)
         {
+            if (product == null)
+                return BadRequest();
+
+            var updated = _repository.Update(id, product);
+            if (!updated)
+                return NotFound();
+
+            return NoContent();
         }
 
-        // DELETE api/<ProductController>/5
+        // DELETE api/product/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public IActionResult Delete(long id)
         {
+            var deleted = _repository.Delete(id);
+            if (!deleted)
+                return NotFound();
+
+            return NoContent();
         }
     }
 }
