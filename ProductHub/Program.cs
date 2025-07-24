@@ -14,6 +14,11 @@ namespace ProductHub
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddCors(options => options.AddPolicy("CorsPolicy", policy =>
+            {
+                policy.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins("http://localhost:4200");
+            }));
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -24,6 +29,8 @@ namespace ProductHub
             }
 
             app.UseAuthorization();
+
+            app.UseCors("CorsPolicy");
 
             app.MapControllers();
 
